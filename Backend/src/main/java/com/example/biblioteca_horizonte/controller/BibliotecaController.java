@@ -68,13 +68,8 @@ public class BibliotecaController {
 
     // 5. Confirmar reserva (Rol Bibliotecaria - con validación de unicidad)
     @PatchMapping("/reservas/{id}/confirmar")
-    public ResponseEntity<?> confirmarReserva(@PathVariable Long id) {
-        try {
-            Reserva actualizada = reservaService.confirmarReserva(id);
-            return ResponseEntity.ok(actualizada);
-        } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
+    public Reserva confirmarReserva(@PathVariable Long id) {
+        return reservaService.confirmarReserva(id);
     }
 
     // 6. Rechazar reserva (Rol Bibliotecaria)

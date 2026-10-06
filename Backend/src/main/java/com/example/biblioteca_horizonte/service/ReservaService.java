@@ -1,5 +1,7 @@
 package com.example.biblioteca_horizonte.service;
 
+import com.example.biblioteca_horizonte.exception.RecursoNoEncontradoException;
+import com.example.biblioteca_horizonte.exception.ReglaNegocioException;
 import com.example.biblioteca_horizonte.model.Reserva;
 import com.example.biblioteca_horizonte.model.enums.EstadoReserva;
 import com.example.biblioteca_horizonte.repository.ReservaRepository;
@@ -23,9 +25,13 @@ public class ReservaService {
     }
 
     public Reserva confirmarReserva(Long id) {
-        Reserva reserva = reservaRepository.findById(id).orElseThrow(() -> new RuntimeException("Reserva no encontrada"));
+        Reserva reserva = buscarPorId(id);
 
-        // Validar la regla de oro: verificar si ya hay otra confirmada para el mismo equipo, fecha y módulo
+        if (reserva.getEstado() != EstadoReserva.PENDIENTE) {
+            throw new ReglaNegocioException(
+                    "Solo se pueden confirmar solicitudes pendientes. Estado actual: " + reserva.getEstado());
+        }
+
         boolean yaExiste = reservaRepository.existsByEquipoIdAndFechaAndModuloHorarioAndEstado(
                 reserva.getEquipo().getId(),
                 reserva.getFecha(),
@@ -34,7 +40,7 @@ public class ReservaService {
         );
 
         if (yaExiste) {
-            throw new RuntimeException("Error: Ya existe una reserva CONFIRMADA para este equipo, fecha y módulo.");
+            throw new ReglaNegocioException("Error: Ya existe una reserva CONFIRMADA para este equipo, fecha y módulo.");
         }
 
         reserva.setEstado(EstadoReserva.CONFIRMADA);
@@ -42,9 +48,20 @@ public class ReservaService {
     }
 
     public Reserva rechazarReserva(Long id, String motivo) {
-        Reserva reserva = reservaRepository.findById(id).orElseThrow(() -> new RuntimeException("Reserva no encontrada"));
+        Reserva reserva = buscarPorId(id);
+
+        if (reserva.getEstado() != EstadoReserva.PENDIENTE) {
+            throw new ReglaNegocioException(
+                    "Solo se pueden rechazar solicitudes pendientes. Estado actual: " + reserva.getEstado());
+        }
+
         reserva.setEstado(EstadoReserva.RECHAZADA);
         reserva.setMotivoRechazo(motivo);
         return reservaRepository.save(reserva);
+    }
+
+    private Reserva buscarPorId(Long id) {
+        return reservaRepository.findById(id)
+                .orElseThrow(() -> new RecursoNoEncontradoException("Reserva no encontrada"));
     }
 }
