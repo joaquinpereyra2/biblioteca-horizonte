@@ -8,7 +8,6 @@ import com.example.biblioteca_horizonte.model.Usuario;
 import com.example.biblioteca_horizonte.repository.EquipoRepository;
 import com.example.biblioteca_horizonte.repository.ReservaRepository;
 import com.example.biblioteca_horizonte.repository.UsuarioRepository;
-import com.example.biblioteca_horizonte.service.ReservaService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
