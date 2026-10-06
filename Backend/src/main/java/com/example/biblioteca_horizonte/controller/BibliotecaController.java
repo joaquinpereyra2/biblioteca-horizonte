@@ -1,12 +1,13 @@
 package com.example.biblioteca_horizonte.controller;
 
+import com.example.biblioteca_horizonte.exception.AccesoDenegadoException;
+import com.example.biblioteca_horizonte.model.enums.RolUsuario;
 import com.example.biblioteca_horizonte.model.Equipo;
 import com.example.biblioteca_horizonte.model.Reserva;
 import com.example.biblioteca_horizonte.model.Usuario;
 import com.example.biblioteca_horizonte.repository.EquipoRepository;
 import com.example.biblioteca_horizonte.repository.ReservaRepository;
 import com.example.biblioteca_horizonte.repository.UsuarioRepository;
-import com.example.biblioteca_horizonte.service.ReservaService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -31,6 +32,18 @@ public class BibliotecaController {
 
     @Autowired
     private ReservaService reservaService;
+
+    // Método auxiliar para validar rol de bibliotecaria
+    private void exigirBibliotecaria(Long usuarioId) {
+        if (usuarioId == null) {
+            throw new AccesoDenegadoException("Debés iniciar sesión como bibliotecaria");
+        }
+        Usuario usuario = usuarioRepository.findById(usuarioId)
+                .orElseThrow(() -> new AccesoDenegadoException("Usuario no válido"));
+        if (usuario.getRol() != RolUsuario.BIBLIOTECARIA) {
+            throw new AccesoDenegadoException("Solo la bibliotecaria puede realizar esta acción");
+        }
+    }
 
     // 1. Obtener equipos activos (proyectores y notebooks)
     @GetMapping("/equipos")
@@ -66,15 +79,20 @@ public class BibliotecaController {
         return reservaService.crearReserva(reserva);
     }
 
-    // 5. Confirmar reserva (Rol Bibliotecaria - con validación de unicidad)
+    // 5. Confirmar reserva (Rol Bibliotecaria - con validación de rol y unicidad)
     @PatchMapping("/reservas/{id}/confirmar")
-    public Reserva confirmarReserva(@PathVariable Long id) {
+    public Reserva confirmarReserva(@PathVariable Long id,
+                                    @RequestHeader(value = "X-Usuario-Id", required = false) Long usuarioId) {
+        exigirBibliotecaria(usuarioId);
         return reservaService.confirmarReserva(id);
     }
 
-    // 6. Rechazar reserva (Rol Bibliotecaria)
+    // 6. Rechazar reserva (Rol Bibliotecaria - con validación de rol)
     @PatchMapping("/reservas/{id}/rechazar")
-    public Reserva rechazarReserva(@PathVariable Long id, @RequestBody Map<String, String> body) {
+    public Reserva rechazarReserva(@PathVariable Long id,
+                                   @RequestBody Map<String, String> body,
+                                   @RequestHeader(value = "X-Usuario-Id", required = false) Long usuarioId) {
+        exigirBibliotecaria(usuarioId);
         String motivo = body.get("motivo");
         return reservaService.rechazarReserva(id, motivo);
     }
