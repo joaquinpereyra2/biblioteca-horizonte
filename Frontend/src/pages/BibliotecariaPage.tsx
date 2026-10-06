@@ -49,7 +49,7 @@ export function BibliotecariaPage({ usuario, onLogout }: { usuario: Usuario; onL
   const handleConfirmar = async (r: Reserva) => {
     setActioningId(r.id)
     try {
-      await api.confirmarReserva(r.id)
+      await api.confirmarReserva(r.id, usuario.id)
       notify(`Reserva confirmada: ${r.equipo.nombre} para ${r.docente.nombre}`)
       await cargar()
     } catch (err) {
@@ -68,7 +68,7 @@ export function BibliotecariaPage({ usuario, onLogout }: { usuario: Usuario; onL
     if (!rechazoObjetivo) return
     setActioningId(rechazoObjetivo.id)
     try {
-      await api.rechazarReserva(rechazoObjetivo.id, motivo)
+      await api.rechazarReserva(rechazoObjetivo.id, motivo, usuario.id)
       notify('Solicitud rechazada')
       setRechazoObjetivo(null)
       await cargar()

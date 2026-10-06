@@ -64,12 +64,16 @@ export const api = {
       }),
     }),
 
-  confirmarReserva: (id: number) =>
-    request<Reserva>(`/reservas/${id}/confirmar`, { method: 'PATCH' }),
+  confirmarReserva: (id: number, usuarioId: number) =>
+    request<Reserva>(`/reservas/${id}/confirmar`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', 'X-Usuario-Id': String(usuarioId) },
+    }),
 
-  rechazarReserva: (id: number, motivo: string) =>
+  rechazarReserva: (id: number, motivo: string, usuarioId: number) =>
     request<Reserva>(`/reservas/${id}/rechazar`, {
       method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', 'X-Usuario-Id': String(usuarioId) },
       body: JSON.stringify({ motivo }),
     }),
 }
