@@ -27,6 +27,11 @@ public class ReservaService {
     public Reserva confirmarReserva(Long id) {
         Reserva reserva = buscarPorId(id);
 
+        if (reserva.getEstado() != EstadoReserva.PENDIENTE) {
+            throw new ReglaNegocioException(
+                    "Solo se pueden confirmar solicitudes pendientes. Estado actual: " + reserva.getEstado());
+        }
+
         boolean yaExiste = reservaRepository.existsByEquipoIdAndFechaAndModuloHorarioAndEstado(
                 reserva.getEquipo().getId(),
                 reserva.getFecha(),
@@ -44,6 +49,12 @@ public class ReservaService {
 
     public Reserva rechazarReserva(Long id, String motivo) {
         Reserva reserva = buscarPorId(id);
+
+        if (reserva.getEstado() != EstadoReserva.PENDIENTE) {
+            throw new ReglaNegocioException(
+                    "Solo se pueden rechazar solicitudes pendientes. Estado actual: " + reserva.getEstado());
+        }
+
         reserva.setEstado(EstadoReserva.RECHAZADA);
         reserva.setMotivoRechazo(motivo);
         return reservaRepository.save(reserva);
